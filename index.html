@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#1a0f0a">
+  <meta name="robots" content="noindex">
+  <title>Yapboz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500,50;0,9..144,800,50;1,9..144,500,100&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="kiss" viewBox="0 0 120 80">
+      <path d="M6 39C20 25 36 10 49 11c6 .5 9 6 11 8 2-2 5-7.500 11-8 13-1 29 14 43 28-17-5-36-3-54-1-18-2-37-4-54 1Z"/>
+      <path d="M6 42c17 1 36 3 54 5 18-2 37-4 54-5-13 19-33 31-54 31S19 61 6 42Z"/>
+      <g fill="none" stroke="var(--kiss-gap, #F4E9D6)" stroke-width="1.300" stroke-linecap="round" opacity=".55">
+        <path d="M34 22l3 12M46 16l1 15M72 15l-1 16M85 22l-3 12M24 47l6 11M38 50l3 15M52 51l1 17M68 51l-1 17M82 50l-3 15M96 47l-6 11"/>
+      </g>
+    </symbol>
+  </svg>
+
+  <canvas id="stage" aria-label="Yapboz masası"></canvas>
+  <div id="vignette"></div>
+  <div id="fx"></div>
+
+  <header id="hud" hidden>
+    <button id="backBtn" class="chip" type="button">Kutular</button>
+    <div id="tools" hidden>
+      <button id="hintBtn" class="chip" type="button">İpucu</button>
+      <button id="photoBtn" class="chip" type="button">Resim</button>
+    </div>
+    <button id="musicBtn" class="chip" type="button" aria-expanded="false" aria-controls="musicPanel"><span id="bars" aria-hidden="true"><i></i><i></i><i></i></span>Müzik</button>
+    <p id="progress" aria-live="polite"></p>
+    <button id="shopBtn" class="chip" type="button">Mağaza</button>
+    <button id="counter" type="button" aria-label="Öpücüklerin, mağazayı aç">
+      <svg aria-hidden="true"><use href="#kiss"/></svg>
+      <output id="kissCount">0</output>
+    </button>
+  </header>
+
+  <aside id="musicPanel" aria-label="Müzik" aria-hidden="true">
+    <div class="player-frame"><div id="ytPlayer"></div></div>
+    <p id="trackName">Şarkı yükleniyor</p>
+    <p id="musicNote" hidden></p>
+    <div class="music-row">
+      <button id="skipBtn" class="primary" type="button">Şarkıyı geç</button>
+      <button id="bandBtn" class="chip" type="button">Karışık</button>
+    </div>
+    <div class="music-row">
+      <button id="soundBtn" class="chip" type="button" aria-pressed="true">Oyun sesi açık</button>
+      <button id="musicClose" class="chip" type="button">Kapat</button>
+    </div>
+  </aside>
+
+  <section id="picker" hidden aria-label="Kutu seçimi">
+    <button id="prevBox" class="round" type="button" aria-label="Önceki kutu">‹</button>
+    <div class="picker-text">
+      <h2 id="boxTitle"></h2>
+      <p id="boxMeta"></p>
+      <button id="openBox" class="primary" type="button">Bu kutuyu seç</button>
+    </div>
+    <button id="nextBox" class="round" type="button" aria-label="Sonraki kutu">›</button>
+  </section>
+
+  <div id="prompt" hidden aria-live="polite"><p id="promptText"></p></div>
+
+  <div id="photoView" hidden role="dialog" aria-label="Kutunun üstündeki resim">
+    <img id="photoImg" src="data:," alt="Yapbozun tamamlanmış hali">
+    <button id="photoClose" class="primary" type="button">Kapat</button>
+  </div>
+
+  <section id="finish" hidden aria-live="polite">
+    <svg class="stamp" aria-hidden="true"><use href="#kiss"/></svg>
+    <h2 id="finishTitle"></h2>
+    <p id="finishText"></p>
+    <button id="finishBtn" class="primary" type="button">Diğer kutulara dön</button>
+  </section>
+
+  <div id="shade"></div>
+
+  <div id="shop" hidden role="dialog" aria-label="Öpücük mağazası">
+    <div id="shopSheet">
+      <header>
+        <h2>Öpücük Mağazası</h2>
+        <p>Cebinde <strong id="shopBalance">0</strong> öpücük var</p>
+      </header>
+      <ul id="shopList"></ul>
+      <div id="couponBlock" hidden>
+        <h3>Kuponların</h3>
+        <p>Onur’a göster, hemen tahsil et.</p>
+        <ul id="couponList"></ul>
+      </div>
+      <button id="shopClose" class="chip" type="button">Kapat</button>
+    </div>
+  </div>
+
+  <div id="coupon" hidden role="dialog" aria-label="Kupon">
+    <div id="couponCard">
+      <svg class="stamp" aria-hidden="true"><use href="#kiss"/></svg>
+      <p class="coupon-kicker">Kupon, Onur’dan tahsil edilir</p>
+      <h2 id="couponName"></h2>
+      <p id="couponLine"></p>
+      <button id="couponOk" class="primary" type="button">Tamam</button>
+    </div>
+  </div>
+
+  <div id="sabProbe" aria-hidden="true"></div>
+
+  <main id="gate">
+    <form id="gateForm" class="tag" autocomplete="off">
+      <span class="string" aria-hidden="true"></span>
+      <h1>Bu kutu bir tarihle açılıyor</h1>
+      <label for="pass">Hangi tarih olduğunu sen biliyorsun, Tuğba.</label>
+      <input id="pass" name="pass" type="text" inputmode="text" placeholder="gg.aa.yyyy" autocapitalize="off" spellcheck="false" required>
+      <p id="gateNote" role="status"></p>
+      <button id="gateBtn" class="primary" type="submit">Aç</button>
+      <svg class="seal" aria-hidden="true"><use href="#kiss"/></svg>
+    </form>
+  </main>
+
+  <div id="intro" hidden>
+    <video id="introBlur" muted playsinline aria-hidden="true"></video>
+    <video id="introVideo" playsinline></video>
+    <button id="skipIntro" class="chip" type="button">Geç</button>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
