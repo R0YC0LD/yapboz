@@ -4,3 +4,7 @@ dist
 *.mp4
 .claude
 .impeccable
+*.exe
+desktop/ui/config.js
+desktop/src-tauri/target
+desktop/src-tauri/gen

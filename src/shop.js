@@ -3,6 +3,7 @@ import { kissScatter, rainOver, screenShake } from './fx.js';
 import { sfx } from './sound.js';
 import { save, persist } from './store.js';
 import { PUZZLES } from './data.js';
+import { newCoupon, syncCoupons } from './coupons.js';
 
 const $ = (id) => document.getElementById(id);
 const TOTAL = PUZZLES.reduce((sum, p) => sum + p.cols * p.rows, 0);
@@ -69,11 +70,12 @@ function buy(item) {
   }
   armed = null;
   save.kisses -= item.cost;
-  save.coupons.unshift({ id: item.id, name: item.name, date: new Date().toLocaleDateString('tr-TR') });
+  save.coupons.unshift(newCoupon(item));
   persist();
   onChange();
   render();
   showCoupon(item);
+  syncCoupons();
 }
 
 function showCoupon(item) {
@@ -116,6 +118,7 @@ export function initShop(changed) {
 
 export function openShop() {
   render();
+  syncCoupons().then((changed) => changed && !$('shop').hidden && render());
   $('shop').hidden = false;
   gsap.fromTo('#shopSheet', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: 'back.out(1.6)' });
 }

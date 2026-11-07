@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { camera, fitDistance, initStage, lampOn, moveView, onFrame, onResize, renderer, scene, size } from './stage.js';
 import { buildBox } from './box.js';
 import { initShop, openShop } from './shop.js';
+import { syncCoupons } from './coupons.js';
 import { initFx } from './fx.js';
 import { initPhysics } from './pour.js';
 import { Session } from './session.js';
@@ -209,6 +210,7 @@ function wireUi() {
   $('shopBtn').onclick = openShop;
   $('counter').onclick = openShop;
   initShop(ui.bumpKiss);
+  syncCoupons();
 
   const canvas = ui.canvas;
   canvas.addEventListener('pointerdown', (e) => {

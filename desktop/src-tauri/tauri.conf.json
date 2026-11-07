@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Tuğba Kuponlar",
+  "version": "1.0.0",
+  "identifier": "com.r0yc0ld.tugbakuponlar",
+  "build": { "frontendDist": "../ui" },
+  "app": {
+    "windows": [
+      { "title": "Tuğba Kuponlar", "width": 460, "height": 640, "minWidth": 360, "minHeight": 420 }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": { "active": false, "icon": ["icons/icon.ico"] }
+}
