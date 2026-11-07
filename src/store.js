@@ -1,11 +1,13 @@
-const KEY = 'yapboz-kayit-1';
+const KEY = 'yapboz-kayit-2';
+export const SAVE_VERSION = 2;
 
 function load() {
   try {
+    localStorage.removeItem('yapboz-kayit-1');
     const stored = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-    return { kisses: 0, earned: stored.kisses ?? 0, puzzles: {}, coupons: [], ...stored };
+    return { v: SAVE_VERSION, kisses: 0, earned: 0, puzzles: {}, coupons: [], ...stored };
   } catch {
-    return { kisses: 0, earned: 0, puzzles: {}, coupons: [] };
+    return { v: SAVE_VERSION, kisses: 0, earned: 0, puzzles: {}, coupons: [] };
   }
 }
 

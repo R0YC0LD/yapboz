@@ -10,7 +10,7 @@ import { PUZZLES } from './data.js';
 
 const REST = 0.05 + THICK / 2;
 const BOX_Z = -5;
-const SNAP_RANGE = 0.55;
+const SNAP_RANGE = 0.72;
 const PITCH = 1.42;
 const FRAME = 0.36;
 
@@ -138,6 +138,12 @@ export class Session {
     }
     this.loose = this.pieces.filter((p) => !p.placed);
     this.order = this.buildOrder();
+
+    this.glow = new THREE.Mesh(
+      new THREE.BufferGeometry(),
+      new THREE.MeshBasicMaterial({ color: '#f9d9a0', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    scene.add(this.glow);
 
     this.handlers = {
       pointerdown: (e) => this.onDown(e),
@@ -451,6 +457,9 @@ export class Session {
     gsap.to(piece.mesh.scale, { x: 1.08, y: 1.08, z: 1.08, duration: 0.18, ease: 'back.out(3)' });
     gsap.to(piece.mesh.rotation, { y: 0, duration: 0.18 });
     piece.tilt = { x: 0, z: 0, px: piece.mesh.position.x, pz: piece.mesh.position.z };
+    this.glow.geometry.dispose();
+    this.glow.geometry = new THREE.ShapeGeometry(piece.shape, 7).rotateX(-Math.PI / 2);
+    this.glow.position.set(piece.target.x, 0.045, piece.target.z);
     dust(piece.mesh.position, 0.5);
     sfx.pick();
   }
@@ -460,6 +469,7 @@ export class Session {
     liveShadows(1.8);
     const piece = this.held;
     this.held = null;
+    gsap.to(this.glow.material, { opacity: 0, duration: 0.2, overwrite: true });
     const distance = point ? Math.hypot(point.x - piece.target.x, point.z + this.heldOffset.target - piece.target.z) : Infinity;
     if (this.large) gsap.delayedCall(0.7, () => (piece.mesh.castShadow = false));
     if (distance <= Math.max(SNAP_RANGE, 15 / this.layout.s)) this.place(piece);
@@ -640,7 +650,7 @@ export class Session {
       this.pick(p.hit, { pointerType: p.type });
     }
     if (this.held && p) {
-      const { mesh, tilt } = this.held;
+      const { mesh, tilt, target } = this.held;
       const world = screenToTable(p.x, p.y);
       if (world) {
         const k = 1 - Math.exp(-dt * 28);
@@ -655,6 +665,9 @@ export class Session {
         tilt.z += (THREE.MathUtils.clamp(-vx * 0.012, -0.4, 0.4) - tilt.z) * 0.2;
         mesh.rotation.x = tilt.x;
         mesh.rotation.z = tilt.z;
+        const nearness = THREE.MathUtils.clamp(1 - Math.hypot(mesh.position.x - target.x, mesh.position.z - target.z) / 2.2, 0, 1);
+        const pulse = calm ? 0.8 : 0.72 + 0.28 * Math.sin(performance.now() * 0.007);
+        this.glow.material.opacity = nearness * pulse * 0.38;
       }
     }
   }
@@ -664,6 +677,7 @@ export class Session {
     liveShadows();
     this.flow?.kill();
     gsap.killTweensOf(this);
+    gsap.killTweensOf(this.glow.material);
     this.pour?.dispose();
     this.pour = null;
     this.cleanups.forEach((fn) => fn());
@@ -673,7 +687,9 @@ export class Session {
       gsap.killTweensOf(piece.mesh.scale);
       piece.mesh.removeFromParent();
     }
-    scene.remove(this.board.group, this.tray);
+    scene.remove(this.board.group, this.tray, this.glow);
+    this.glow.geometry.dispose();
+    this.glow.material.dispose();
     if (this.whole) {
       scene.remove(this.whole);
       this.whole.geometry.dispose();
