@@ -29,3 +29,16 @@ export function persist() {
 export function puzzleState(id) {
   return (save.puzzles[id] ??= { placed: [], finished: 0 });
 }
+
+// Parça numarası ızgaraya bağlı. Izgara değişince yarım kalan kutu sıfırlanır, öpücükler durur.
+export function alignGrids(puzzles) {
+  for (const p of puzzles) {
+    const state = puzzleState(p.id);
+    const grid = `${p.cols}x${p.rows}`;
+    if (state.grid !== grid) {
+      state.grid = grid;
+      state.placed = [];
+    }
+  }
+  persist();
+}

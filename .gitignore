@@ -6,6 +6,7 @@ dist
 .claude
 .impeccable
 *.exe
+*.local
 desktop/ui/config.js
 desktop/src-tauri/target
 desktop/src-tauri/gen

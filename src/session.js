@@ -57,13 +57,19 @@ function safeBottom() {
 function buildBoard(p, img) {
   const group = new THREE.Group();
   const canvas = document.createElement('canvas');
-  const scale = 150;
+  const scale = Math.min(150, Math.floor(2048 / Math.max(p.cols, p.rows)));
   canvas.width = p.cols * scale;
   canvas.height = p.rows * scale;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#3b2519';
+  const fit = Math.min(img.naturalWidth / p.cols, img.naturalHeight / p.rows);
+  const cropW = fit * p.cols, cropH = fit * p.rows;
+  const cropX = (img.naturalWidth - cropW) / 2, cropY = (img.naturalHeight - cropH) / 2;
+  ctx.fillStyle = '#23140c';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = 'rgba(244,233,214,.08)';
+  ctx.globalAlpha = 0.17;
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(244,233,214,.07)';
   ctx.lineWidth = 3;
   drawOutlines(ctx, p, scale);
 
@@ -107,6 +113,7 @@ export class Session {
     this.state = puzzleState(puzzle.id);
     if (this.state.placed.length >= puzzle.cols * puzzle.rows) this.state.placed = [];
     this.alive = true;
+    this.large = puzzle.cols * puzzle.rows > 90;
     this.streak = 0;
     this.lastPlaced = 0;
     this.total = puzzle.cols * puzzle.rows;
@@ -137,6 +144,7 @@ export class Session {
       pointermove: (e) => this.onMove(e),
       pointerup: (e) => this.onUp(e),
       pointercancel: (e) => this.onUp(e),
+      lostpointercapture: (e) => this.onUp(e),
       wheel: (e) => this.onWheel(e),
     };
     for (const [name, fn] of Object.entries(this.handlers)) ui.canvas.addEventListener(name, fn, { passive: true });
@@ -242,6 +250,7 @@ export class Session {
 
     this.ui.playHud(true);
     this.updateProgress();
+    if (size.h < 520 && size.w > size.h && this.puzzle.rows > 12) toast('Bu kutu telefon dikken daha rahat');
     this.layout = solveLayout(this.puzzle.cols, this.puzzle.rows, this.order.length);
     this.applyCamera(1.1);
 
@@ -264,6 +273,7 @@ export class Session {
       const flip = { t: 0 };
       this.tray.attach(mesh);
       const delay = 0.25 + (calm ? 0 : Math.random() * 0.6);
+      gsap.to(mesh.scale, { x: 1, y: 1, z: 1, duration: 0.7, delay, ease: 'power2.inOut' });
       gsap.to(flip, {
         t: 1,
         duration: 0.7,
@@ -280,6 +290,7 @@ export class Session {
     gsap.delayedCall(calm ? 1.1 : 1.7, () => {
       if (!this.alive) return;
       this.phase = 'play';
+      if (this.large) this.pieces.forEach((p) => (p.mesh.castShadow = false));
       restShadows();
     });
   }
@@ -418,7 +429,7 @@ export class Session {
     if (!p || p.id !== e.pointerId) return;
     this.pointer = null;
     if (!this.held) return;
-    if (e.type === 'pointercancel') this.drop(null);
+    if (e.type !== 'pointerup') this.drop(null);
     else this.drop(screenToTable(e.clientX, e.clientY));
   }
 
@@ -431,7 +442,8 @@ export class Session {
   pick(piece, e) {
     liveShadows();
     this.held = piece;
-    this.heldOffset = { z: 0, target: e.pointerType === 'mouse' ? 0 : -1.3 };
+    this.heldOffset = { z: 0, target: e.pointerType === 'mouse' ? 0 : -Math.max(1.3, 60 / this.layout.s) };
+    piece.mesh.castShadow = true;
     gsap.killTweensOf(piece.mesh.position);
     gsap.killTweensOf(piece.mesh.rotation);
     scene.attach(piece.mesh);
@@ -449,7 +461,8 @@ export class Session {
     const piece = this.held;
     this.held = null;
     const distance = point ? Math.hypot(point.x - piece.target.x, point.z + this.heldOffset.target - piece.target.z) : Infinity;
-    if (distance <= SNAP_RANGE) this.place(piece);
+    if (this.large) gsap.delayedCall(0.7, () => (piece.mesh.castShadow = false));
+    if (distance <= Math.max(SNAP_RANGE, 15 / this.layout.s)) this.place(piece);
     else this.sendHome(piece);
   }
 

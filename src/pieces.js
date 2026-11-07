@@ -87,6 +87,7 @@ export function drawOutlines(ctx, p, scale) {
 
 export function buildPuzzle(p, photo) {
   const { across, down } = buildEdges(p);
+  const large = p.cols * p.rows > 120;
 
   const front = new THREE.MeshStandardMaterial({
     map: photo,
@@ -112,8 +113,8 @@ export function buildPuzzle(p, photo) {
         bevelThickness: bevel,
         bevelSize: bevel,
         bevelOffset: -bevel,
-        bevelSegments: 2,
-        curveSegments: 7,
+        bevelSegments: large ? 1 : 2,
+        curveSegments: large ? 4 : 7,
         UVGenerator: {
           generateTopUV(_g, v, a, b, d) {
             const uv = (i) => new THREE.Vector2((v[i * 3] + cx) / p.cols, 1 - (cy - v[i * 3 + 1]) / p.rows);

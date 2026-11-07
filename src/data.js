@@ -1,13 +1,13 @@
 export const PUZZLES = [
   { id: 'p1', title: 'Kafede Yan Yana', cols: 9, rows: 7 },
-  { id: 'p2', title: 'Öpücük Pozu', cols: 7, rows: 9 },
+  { id: 'p2', title: 'Öpücük Pozu', cols: 9, rows: 11 },
   { id: 'p3', title: 'Palmiye Altında', cols: 9, rows: 7 },
-  { id: 'p4', title: 'Dil Çıkarma Şampiyonası', cols: 7, rows: 9 },
-  { id: 'p5', title: 'Yeşil Palmiye', cols: 7, rows: 9 },
+  { id: 'p4', title: 'Dil Çıkarma Şampiyonası', cols: 9, rows: 11 },
+  { id: 'p5', title: 'Yeşil Palmiye', cols: 9, rows: 11 },
   { id: 'p6', title: 'Gece Çizgisi', cols: 9, rows: 7 },
-  { id: 'p7', title: 'Güneşte Yüz Yüze', cols: 7, rows: 9 },
-  { id: 'p8', title: 'Omuzda Bir Kol', cols: 9, rows: 7 },
-  { id: 'p9', title: 'Yanağa Bir Öpücük', cols: 9, rows: 7 },
+  { id: 'p7', title: 'Güneşte Yüz Yüze', cols: 9, rows: 11 },
+  { id: 'p8', title: 'Omuzda Bir Kol', cols: 11, rows: 9 },
+  { id: 'p9', title: 'Yanağa Bir Öpücük', cols: 11, rows: 9 },
 ];
 
 export const TRACKS = {

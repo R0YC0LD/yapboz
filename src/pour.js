@@ -35,15 +35,17 @@ export function createPour({ pieces, box, origin, limits, onImpact }) {
   wall(thick, BOX_H / 2, d / 2, -w / 2 + WALL - thick, BOX_H / 2, 0);
   wall(thick, BOX_H / 2, d / 2, w / 2 - WALL + thick, BOX_H / 2, 0);
 
-  const across = Math.max(1, Math.floor((w - 0.5) / 1.02));
-  const along = Math.max(1, Math.floor((d - 0.5) / 1.02));
+  const shrink = Math.min(1, Math.sqrt(63 / pieces.length));
+  const cell = 1.02 * shrink;
+  const across = Math.max(1, Math.floor((w - 0.5) / cell));
+  const along = Math.max(1, Math.floor((d - 0.5) / cell));
   const layerCount = across * along;
   const bodies = pieces.map((piece, i) => {
     const layer = Math.floor(i / layerCount);
     const slot = i % layerCount;
-    const x = origin.x + ((slot % across) + 0.5 - across / 2) * 1.02 + (Math.random() - 0.5) * 0.06;
-    const z = origin.z + (Math.floor(slot / across) + 0.5 - along / 2) * 1.02 + (Math.random() - 0.5) * 0.06;
-    const y = WALL + 0.2 + layer * 0.24;
+    const x = origin.x + ((slot % across) + 0.5 - across / 2) * cell + (Math.random() - 0.5) * 0.06;
+    const z = origin.z + (Math.floor(slot / across) + 0.5 - along / 2) * cell + (Math.random() - 0.5) * 0.06;
+    const y = WALL + 0.2 + layer * 0.24 * shrink;
     const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.5);
     if (Math.random() < 0.55) yaw.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI));
     const body = world.createRigidBody(
@@ -52,9 +54,10 @@ export function createPour({ pieces, box, origin, limits, onImpact }) {
         .setRotation({ x: yaw.x, y: yaw.y, z: yaw.z, w: yaw.w })
         .setLinearDamping(0.06)
         .setAngularDamping(0.5)
-        .setCcdEnabled(true),
+        .setCcdEnabled(pieces.length <= 100),
     );
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.46, THICK / 2, 0.46).setFriction(0.32).setRestitution(0.12).setDensity(1), body);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.46 * shrink, (THICK / 2) * shrink, 0.46 * shrink).setFriction(0.32).setRestitution(0.12).setDensity(1), body);
+    piece.mesh.scale.setScalar(shrink);
     piece.mesh.position.set(x, y, z);
     piece.mesh.quaternion.copy(yaw);
     return { piece, body };

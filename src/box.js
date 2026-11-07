@@ -63,7 +63,7 @@ export function paintCover(canvas, p, img, number, total, finished) {
   ctx.fillText(p.title, 3 * u, H - 9.4 * u);
   ctx.font = `600 ${3 * u}px "Bricolage Grotesque", sans-serif`;
   ctx.fillStyle = PALM;
-  ctx.fillText(`${p.cols} × ${p.rows} ızgara, oynaması kolay`, 3 * u, H - 4.2 * u);
+  ctx.fillText(`${p.cols} × ${p.rows} ızgara`, 3 * u, H - 4.2 * u);
 
   const cx = W - 12.5 * u, cy = H - 9.5 * u, radius = 10.5 * u;
   ctx.beginPath();

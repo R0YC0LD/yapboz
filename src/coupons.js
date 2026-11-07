@@ -1,7 +1,7 @@
 import { SUPABASE_KEY, SUPABASE_URL } from './backend.js';
 import { onPersist, save, persist } from './store.js';
 
-const enabled = Boolean(SUPABASE_URL && SUPABASE_KEY);
+const enabled = Boolean(SUPABASE_URL && SUPABASE_KEY) && !import.meta.env.VITE_OFFLINE;
 
 async function rpc(name, body, options) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {

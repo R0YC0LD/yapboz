@@ -9,7 +9,7 @@ import { initPhysics } from './pour.js';
 import { Session } from './session.js';
 import { createMusic } from './music.js';
 import { PUZZLES } from './data.js';
-import { save, puzzleState } from './store.js';
+import { alignGrids, save, puzzleState } from './store.js';
 import { sfx, toggleSound, wakeSound } from './sound.js';
 
 const SPACING = 8.8;
@@ -23,6 +23,7 @@ let music = null;
 
 export async function prepareGame(images) {
   await restoreProgress();
+  alignGrids(PUZZLES);
   await Promise.all([
     document.fonts.load('400 40px Shrikhand', 'Tuğba Şampiyonası'),
     document.fonts.load('600 20px "Bricolage Grotesque"', 'parça ızgara'),
@@ -120,6 +121,10 @@ function pickBox() {
 
   const photo = new THREE.Texture(chosen.img);
   photo.colorSpace = THREE.SRGBColorSpace;
+  const boardShape = chosen.puzzle.cols / chosen.puzzle.rows;
+  const photoShape = chosen.img.naturalWidth / chosen.img.naturalHeight;
+  photo.repeat.set(Math.min(boardShape / photoShape, 1), Math.min(photoShape / boardShape, 1));
+  photo.offset.set((1 - photo.repeat.x) / 2, (1 - photo.repeat.y) / 2);
   photo.anisotropy = renderer.gl.capabilities.getMaxAnisotropy();
   photo.needsUpdate = true;
 
