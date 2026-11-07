@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { camera, fitDistance, initStage, lampOn, moveView, onFrame, onResize, renderer, scene, size } from './stage.js';
 import { buildBox } from './box.js';
 import { initShop, openShop } from './shop.js';
-import { syncCoupons } from './coupons.js';
+import { restoreProgress, syncCoupons } from './coupons.js';
 import { initFx } from './fx.js';
 import { initPhysics } from './pour.js';
 import { Session } from './session.js';
@@ -22,6 +22,7 @@ let session = null;
 let music = null;
 
 export async function prepareGame(images) {
+  await restoreProgress();
   await Promise.all([
     document.fonts.load('400 40px Shrikhand', 'Tuğba Şampiyonası'),
     document.fonts.load('600 20px "Bricolage Grotesque"', 'parça ızgara'),
@@ -193,7 +194,6 @@ function wireUi() {
   };
   $('backBtn').onclick = leaveSession;
   $('finishBtn').onclick = leaveSession;
-  $('hintBtn').onclick = () => session?.hint();
   $('photoBtn').onclick = () => ($('photoView').hidden = false);
   $('photoClose').onclick = () => ($('photoView').hidden = true);
   $('soundBtn').onclick = () => {

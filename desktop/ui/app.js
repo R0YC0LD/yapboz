@@ -32,7 +32,8 @@ function row(coupon) {
   name.textContent = coupon.name;
   const when = document.createElement('span');
   when.className = 'when';
-  when.textContent = new Date(coupon.bought_at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
+  const stamp = new Date(coupon.bought_at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
+  when.textContent = coupon.cost ? `${stamp}, ${coupon.cost} öpücük` : stamp;
   text.append(name, when);
 
   const button = document.createElement('button');

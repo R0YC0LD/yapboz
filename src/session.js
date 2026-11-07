@@ -10,7 +10,7 @@ import { PUZZLES } from './data.js';
 
 const REST = 0.05 + THICK / 2;
 const BOX_Z = -5;
-const SNAP_RANGE = 0.8;
+const SNAP_RANGE = 0.55;
 const PITCH = 1.42;
 const FRAME = 0.36;
 
@@ -63,10 +63,7 @@ function buildBoard(p, img) {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#3b2519';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.globalAlpha = 0.12;
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = 'rgba(244,233,214,.13)';
+  ctx.strokeStyle = 'rgba(244,233,214,.08)';
   ctx.lineWidth = 3;
   drawOutlines(ctx, p, scale);
 
@@ -134,13 +131,6 @@ export class Session {
     }
     this.loose = this.pieces.filter((p) => !p.placed);
     this.order = this.buildOrder();
-
-    this.glow = new THREE.Mesh(
-      new THREE.BufferGeometry(),
-      new THREE.MeshBasicMaterial({ color: '#f9d9a0', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
-    );
-    this.glow.position.y = 0.045;
-    scene.add(this.glow);
 
     this.handlers = {
       pointerdown: (e) => this.onDown(e),
@@ -449,9 +439,6 @@ export class Session {
     gsap.to(piece.mesh.scale, { x: 1.08, y: 1.08, z: 1.08, duration: 0.18, ease: 'back.out(3)' });
     gsap.to(piece.mesh.rotation, { y: 0, duration: 0.18 });
     piece.tilt = { x: 0, z: 0, px: piece.mesh.position.x, pz: piece.mesh.position.z };
-    this.glow.geometry.dispose();
-    this.glow.geometry = new THREE.ShapeGeometry(piece.shape, 7).rotateX(-Math.PI / 2);
-    this.glow.position.set(piece.target.x, 0.045, piece.target.z);
     dust(piece.mesh.position, 0.5);
     sfx.pick();
   }
@@ -461,8 +448,6 @@ export class Session {
     liveShadows(1.8);
     const piece = this.held;
     this.held = null;
-    gsap.killTweensOf(this.glow.material);
-    gsap.to(this.glow.material, { opacity: 0, duration: 0.2 });
     const distance = point ? Math.hypot(point.x - piece.target.x, point.z + this.heldOffset.target - piece.target.z) : Infinity;
     if (distance <= SNAP_RANGE) this.place(piece);
     else this.sendHome(piece);
@@ -553,31 +538,6 @@ export class Session {
     });
   }
 
-  hint() {
-    if (this.phase !== 'play' || this.held || !this.order.length) return;
-    liveShadows(3);
-    const near = (p) => this.pieces.some((o) => o.placed && Math.abs(o.col - p.col) + Math.abs(o.row - p.row) === 1);
-    const piece = this.order.find(near) ?? this.order[0];
-    const axisHome = this.layout.axis === 'x' ? piece.home.x : piece.home.z;
-    const edge = this.layout.axis === 'x' ? this.layout.tray.left : this.layout.tray.top;
-    const origin = (edge - (this.layout.axis === 'x' ? this.layout.bx : this.layout.by)) / this.layout.s;
-    const wanted = THREE.MathUtils.clamp(axisHome - origin - 1.5, 0, this.scrollMax);
-    gsap.to(this, { scroll: wanted, duration: 0.45, ease: 'power2.inOut' });
-
-    gsap.killTweensOf(piece.mesh.position, 'y');
-    gsap.timeline()
-      .to(piece.mesh.position, { y: 1.4, duration: 0.24, ease: 'power2.out' })
-      .to(piece.mesh.position, { y: REST, duration: 0.6, ease: 'bounce.out' })
-      .to(piece.mesh.position, { y: 1.1, duration: 0.2, ease: 'power2.out' })
-      .to(piece.mesh.position, { y: REST, duration: 0.5, ease: 'bounce.out' });
-
-    this.glow.geometry.dispose();
-    this.glow.geometry = new THREE.ShapeGeometry(piece.shape, 7).rotateX(-Math.PI / 2);
-    this.glow.position.set(piece.target.x, 0.045, piece.target.z);
-    gsap.killTweensOf(this.glow.material);
-    gsap.fromTo(this.glow.material, { opacity: 0 }, { opacity: 0.62, duration: 0.3, yoyo: true, repeat: 5, ease: 'sine.inOut' });
-  }
-
   poseFinish(duration) {
     const { cols, rows } = this.puzzle;
     const availH = size.h - finishCardSpace();
@@ -641,7 +601,7 @@ export class Session {
       if (!this.alive) return;
       const allDone = PUZZLES.every((p) => (save.puzzles[p.id]?.finished ?? 0) > 0);
       this.ui.finish(allDone
-        ? { title: 'Yedi kutu da bitti', text: `Cebinde ${save.kisses} öpücük var. Mağazaya uğra, Tuğba.` }
+        ? { title: 'Bütün kutular bitti', text: `Cebinde ${save.kisses} öpücük var. Mağazaya uğra, Tuğba.` }
         : { title: 'Bitti, Tuğba', text: `Bu resimden ${this.total} öpücük çıktı. Cebinde ${save.kisses} var, mağazada harca.` });
     });
   }
@@ -667,7 +627,7 @@ export class Session {
       this.pick(p.hit, { pointerType: p.type });
     }
     if (this.held && p) {
-      const { mesh, tilt, target } = this.held;
+      const { mesh, tilt } = this.held;
       const world = screenToTable(p.x, p.y);
       if (world) {
         const k = 1 - Math.exp(-dt * 28);
@@ -682,8 +642,6 @@ export class Session {
         tilt.z += (THREE.MathUtils.clamp(-vx * 0.012, -0.4, 0.4) - tilt.z) * 0.2;
         mesh.rotation.x = tilt.x;
         mesh.rotation.z = tilt.z;
-        const distance = Math.hypot(mesh.position.x - target.x, mesh.position.z - target.z);
-        this.glow.material.opacity = THREE.MathUtils.clamp(1 - distance / 2, 0, 1) * 0.42;
       }
     }
   }
@@ -693,7 +651,6 @@ export class Session {
     liveShadows();
     this.flow?.kill();
     gsap.killTweensOf(this);
-    gsap.killTweensOf(this.glow.material);
     this.pour?.dispose();
     this.pour = null;
     this.cleanups.forEach((fn) => fn());
@@ -703,7 +660,7 @@ export class Session {
       gsap.killTweensOf(piece.mesh.scale);
       piece.mesh.removeFromParent();
     }
-    scene.remove(this.board.group, this.tray, this.glow);
+    scene.remove(this.board.group, this.tray);
     if (this.whole) {
       scene.remove(this.whole);
       this.whole.geometry.dispose();
@@ -711,8 +668,6 @@ export class Session {
     }
     this.board.dispose();
     this.built.dispose();
-    this.glow.geometry.dispose();
-    this.glow.material.dispose();
   }
 }
 

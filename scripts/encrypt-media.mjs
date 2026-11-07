@@ -13,6 +13,8 @@ const sources = [
   ['p5.bin', 'WhatsApp Image 2026-11-07 at 21.36.53.jpeg'],
   ['p6.bin', 'WhatsApp Image 2026-11-07 at 21.36.54 (1).jpeg'],
   ['p7.bin', 'WhatsApp Image 2026-11-07 at 21.36.54.jpeg'],
+  ['p8.bin', 'yeni-1.jpg'],
+  ['p9.bin', 'yeni-2.jpg'],
   ['intro.bin', 'WhatsApp Video 2026-11-07 at 21.36.53.mp4'],
 ];
 

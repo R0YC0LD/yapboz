@@ -2,6 +2,7 @@ node_modules
 dist
 *.jpeg
 *.mp4
+/*.jpg
 .claude
 .impeccable
 *.exe

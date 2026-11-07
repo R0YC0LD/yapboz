@@ -79,3 +79,5 @@ grant execute on function public.open_coupons(uuid[]) to anon;
 grant execute on function public.admin_coupons(text) to anon;
 grant execute on function public.admin_collect(text, uuid) to anon;
 grant execute on function public.ping() to anon;
+
+-- Sonraki değişiklikler supabase/kupon-gecmisi.sql dosyasında.

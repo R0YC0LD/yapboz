@@ -3,11 +3,12 @@ import { kissScatter, rainOver, screenShake } from './fx.js';
 import { sfx } from './sound.js';
 import { save, persist } from './store.js';
 import { PUZZLES } from './data.js';
-import { newCoupon, syncCoupons } from './coupons.js';
+import { newCoupon, surpriseOpen, syncCoupons } from './coupons.js';
 
 const $ = (id) => document.getElementById(id);
 const TOTAL = PUZZLES.reduce((sum, p) => sum + p.cols * p.rows, 0);
 
+const SURPRISE_DAY = Date.parse('2026-11-21T08:00:00+03:00');
 const ITEMS = [
   { id: 'hug', name: 'Sarılma', cost: 1, line: 'Geçerli olduğu yer: Onur neredeyse orası.' },
   { id: 'bighug', name: 'Kocaman sarılma', cost: 5, line: 'Kemikler hafif çatırdayabilir.' },
@@ -22,6 +23,7 @@ let armTimer = null;
 
 function row(item) {
   const missing = item.cost - save.kisses;
+  const locked = item.id === 'surprise' && Date.now() < SURPRISE_DAY;
   const li = document.createElement('li');
   li.className = item.id === 'surprise' ? 'shop-row surprise' : 'shop-row';
 
@@ -29,13 +31,13 @@ function row(item) {
   name.className = 'shop-name';
   name.innerHTML = '<strong></strong><span></span>';
   name.firstChild.textContent = item.name;
-  name.lastChild.textContent = item.id === 'surprise' ? `Yedi kutunun bütün öpücükleri: ${TOTAL}` : `${item.cost} öpücük`;
+  name.lastChild.textContent = item.id === 'surprise' ? `${PUZZLES.length} kutunun bütün öpücükleri: ${TOTAL}. 21 Kasım sabahı açılır.` : `${item.cost} öpücük`;
 
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'primary';
-  button.disabled = missing > 0;
-  button.textContent = missing > 0 ? `${missing} eksik` : armed === item.id ? 'Emin misin?' : 'Al';
+  button.disabled = locked || missing > 0;
+  button.textContent = locked ? 'Kilitli' : missing > 0 ? `${missing} eksik` : armed === item.id ? 'Emin misin?' : 'Al';
   button.onclick = () => buy(item);
 
   li.append(name, button);
@@ -56,7 +58,7 @@ function render() {
   $('couponBlock').hidden = save.coupons.length === 0;
 }
 
-function buy(item) {
+async function buy(item) {
   if (save.kisses < item.cost) return;
   if (item.cost >= 10 && armed !== item.id) {
     armed = item.id;
@@ -69,6 +71,10 @@ function buy(item) {
     return;
   }
   armed = null;
+  if (item.id === 'surprise' && (await surpriseOpen()) !== true) {
+    render();
+    return;
+  }
   save.kisses -= item.cost;
   save.coupons.unshift(newCoupon(item));
   persist();

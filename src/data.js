@@ -6,6 +6,8 @@ export const PUZZLES = [
   { id: 'p5', title: 'Yeşil Palmiye', cols: 7, rows: 9 },
   { id: 'p6', title: 'Gece Çizgisi', cols: 9, rows: 7 },
   { id: 'p7', title: 'Güneşte Yüz Yüze', cols: 7, rows: 9 },
+  { id: 'p8', title: 'Omuzda Bir Kol', cols: 9, rows: 7 },
+  { id: 'p9', title: 'Yanağa Bir Öpücük', cols: 9, rows: 7 },
 ];
 
 export const TRACKS = {

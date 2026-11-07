@@ -11,7 +11,14 @@ function load() {
 
 export const save = load();
 
+let afterPersist = () => {};
+
+export function onPersist(fn) {
+  afterPersist = fn;
+}
+
 export function persist() {
+  afterPersist();
   try {
     localStorage.setItem(KEY, JSON.stringify(save));
   } catch {
