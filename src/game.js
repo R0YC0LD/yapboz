@@ -22,7 +22,7 @@ let music = null;
 
 export async function prepareGame(images) {
   await Promise.all([
-    document.fonts.load('800 40px Fraunces', 'Tuğba Şampiyonası'),
+    document.fonts.load('400 40px Shrikhand', 'Tuğba Şampiyonası'),
     document.fonts.load('600 20px "Bricolage Grotesque"', 'parça ızgara'),
   ]);
   await Promise.all([initStage($('stage')), initPhysics()]);

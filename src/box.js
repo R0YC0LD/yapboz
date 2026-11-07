@@ -38,7 +38,7 @@ export function paintCover(canvas, p, img, number, total, finished) {
   ctx.fillStyle = RED;
   ctx.fillRect(0, 0, W, 9 * u);
   ctx.fillStyle = PAPER;
-  ctx.font = `800 ${4.4 * u}px Fraunces, Georgia, serif`;
+  ctx.font = `400 ${4.4 * u}px Shrikhand, Georgia, serif`;
   ctx.textBaseline = 'middle';
   ctx.fillText('Tuğba & Onur', 3 * u, 4.7 * u);
   ctx.textAlign = 'right';
@@ -54,11 +54,11 @@ export function paintCover(canvas, p, img, number, total, finished) {
   ctx.strokeRect(px, py, pw, ph);
 
   ctx.fillStyle = INK;
-  ctx.font = `800 ${5.8 * u}px Fraunces, Georgia, serif`;
+  ctx.font = `400 ${5.8 * u}px Shrikhand, Georgia, serif`;
   let size = 5.8;
   while (ctx.measureText(p.title).width > W - 30 * u && size > 3) {
     size -= 0.2;
-    ctx.font = `800 ${size * u}px Fraunces, Georgia, serif`;
+    ctx.font = `400 ${size * u}px Shrikhand, Georgia, serif`;
   }
   ctx.fillText(p.title, 3 * u, H - 9.4 * u);
   ctx.font = `600 ${3 * u}px "Bricolage Grotesque", sans-serif`;
@@ -77,7 +77,7 @@ export function paintCover(canvas, p, img, number, total, finished) {
   ctx.fill();
   ctx.fillStyle = PAPER;
   ctx.textAlign = 'center';
-  ctx.font = `800 ${7.6 * u}px Fraunces, Georgia, serif`;
+  ctx.font = `400 ${7.6 * u}px Shrikhand, Georgia, serif`;
   ctx.fillText(String(p.cols * p.rows), cx, cy - 1.4 * u);
   ctx.font = `600 ${2.9 * u}px "Bricolage Grotesque", sans-serif`;
   ctx.fillText('PARÇA', cx, cy + 4.5 * u);
@@ -100,7 +100,7 @@ function sideCanvas(p) {
   ctx.fillRect(0, 0, 1024, 18);
   ctx.fillRect(0, 110, 1024, 18);
   ctx.fillStyle = INK;
-  ctx.font = '800 54px Fraunces, Georgia, serif';
+  ctx.font = '400 54px Shrikhand, Georgia, serif';
   ctx.textBaseline = 'middle';
   ctx.fillText(p.title, 34, 66, 660);
   ctx.textAlign = 'right';
