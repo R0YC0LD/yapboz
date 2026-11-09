@@ -13,6 +13,8 @@ export const PUZZLES = [
   { id: 'p12', title: 'Adventure Time', cols: 9, rows: 7 },
   { id: 'p13', title: 'Simpsonlar', cols: 10, rows: 8 },
   { id: 'p14', title: 'Rick and Morty', cols: 8, rows: 10 },
+  { id: 'p15', title: "Foster's Home", cols: 8, rows: 10 },
+  { id: 'p16', title: 'Gumball', cols: 9, rows: 11 },
 ];
 
 export const TRACKS = {

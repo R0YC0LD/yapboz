@@ -20,6 +20,8 @@ const sources = [
   ['p12.bin', 'kutu-adventure-time.jpg'],
   ['p13.bin', 'kutu-simpsons.jpg'],
   ['p14.bin', 'kutu-rick-and-morty.jpg'],
+  ['p15.bin', 'kutu-fosters-home.jpg'],
+  ['p16.bin', 'kutu-gumball.jpg'],
   ['intro.bin', 'WhatsApp Video 2026-11-07 at 21.36.53.mp4'],
 ];
 
