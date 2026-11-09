@@ -16,6 +16,10 @@ export function wakeSound() {
   if (ctx.state === 'suspended') ctx.resume();
 }
 
+export function buzz(pattern) {
+  if (enabled && navigator.vibrate && navigator.userActivation?.hasBeenActive !== false) navigator.vibrate(pattern);
+}
+
 export function toggleSound() {
   enabled = !enabled;
   return enabled;

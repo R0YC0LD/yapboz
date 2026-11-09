@@ -14,7 +14,7 @@
   --fast: 200ms;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 
 html, body {
   font-synthesis: none;
@@ -102,6 +102,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--palm); outl
   font: 400 28px/1 var(--display);
   box-shadow: 0 2px 0 var(--paper-2), 0 4px 10px rgb(0 0 0 / .3);
 }
+.round:active:not(:disabled) { transform: scale(.92); }
+.round { transition: transform var(--fast); }
 .round:disabled { opacity: .4; cursor: default; }
 
 /* Parola */

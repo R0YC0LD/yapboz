@@ -28,7 +28,7 @@ export function kissPath(ctx, x, y, width, angle = 0) {
 
 export function paintCover(canvas, p, img, number, total, finished) {
   const portrait = p.rows > p.cols;
-  const W = canvas.width = 768;
+  const W = canvas.width = 640;
   const H = canvas.height = Math.round(W * (portrait ? 7.66 / 6.06 : 6.06 / 7.66));
   const ctx = canvas.getContext('2d');
   const u = W / 100;
@@ -91,9 +91,10 @@ export function paintCover(canvas, p, img, number, total, finished) {
 
 function sideCanvas(p) {
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 128;
+  canvas.width = 512;
+  canvas.height = 64;
   const ctx = canvas.getContext('2d');
+  ctx.scale(0.5, 0.5);
   ctx.fillStyle = PAPER;
   ctx.fillRect(0, 0, 1024, 128);
   ctx.fillStyle = RED;

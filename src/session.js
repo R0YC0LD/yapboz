@@ -4,7 +4,7 @@ import { scene, onFrame, onResize, moveView, screenToTable, size, fitDistance, c
 import { buildPuzzle, drawOutlines, THICK } from './pieces.js';
 import { createPour } from './pour.js';
 import { burst, dust, flash, flyKiss, kissScatter, lightSweep, rain, ring, toast } from './fx.js';
-import { sfx } from './sound.js';
+import { buzz, sfx } from './sound.js';
 import { save, persist, puzzleState } from './store.js';
 import { PUZZLES } from './data.js';
 
@@ -296,9 +296,20 @@ export class Session {
     gsap.delayedCall(calm ? 1.1 : 1.7, () => {
       if (!this.alive) return;
       this.phase = 'play';
+      this.tapTip();
       if (this.large) this.pieces.forEach((p) => (p.mesh.castShadow = false));
       restShadows();
     });
+  }
+
+  tapTip() {
+    try {
+      if (localStorage.getItem('yapboz-dokun-ipucu')) return;
+      localStorage.setItem('yapboz-dokun-ipucu', '1');
+    } catch {
+      return;
+    }
+    toast('Sürükle ya da parçaya dokun, sonra yerine dokun');
   }
 
   onResized() {
@@ -394,7 +405,6 @@ export class Session {
     const hit = this.pieceAt(point);
     this.scrollVel = 0;
     this.pointer = { id: e.pointerId, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, hit, mode: null, at: performance.now(), type: e.pointerType };
-    if (hit && this.scrollMax === 0) this.pick(hit, e);
   }
 
   onMove(e) {
@@ -412,7 +422,7 @@ export class Session {
     if (!p.mode && Math.hypot(dx, dy) > 7) {
       const along = Math.abs(this.layout.axis === 'x' ? dx : dy);
       const cross = Math.abs(this.layout.axis === 'x' ? dy : dx);
-      if (p.hit && cross > along * 0.75) {
+      if (p.hit && (this.scrollMax === 0 || cross > along * 0.75)) {
         p.x = e.clientX;
         p.y = e.clientY;
         this.pick(p.hit, e);
@@ -434,7 +444,10 @@ export class Session {
     const p = this.pointer;
     if (!p || p.id !== e.pointerId) return;
     this.pointer = null;
-    if (!this.held) return;
+    if (!this.held) {
+      if (e.type === 'pointerup' && !p.mode) this.tap(p, e);
+      return;
+    }
     if (e.type !== 'pointerup') this.drop(null);
     else this.drop(screenToTable(e.clientX, e.clientY));
   }
@@ -445,7 +458,59 @@ export class Session {
     liveShadows(1);
   }
 
+  tap(p, e) {
+    if (p.hit) {
+      if (this.selected === p.hit) this.deselect();
+      else this.select(p.hit);
+      return;
+    }
+    if (!this.selected) return;
+    const point = screenToTable(e.clientX, e.clientY);
+    const { cols, rows } = this.puzzle;
+    if (point && Math.abs(point.x) < cols / 2 + 0.5 && Math.abs(point.z) < rows / 2 + 0.5) this.moveSelected(point);
+    else this.deselect();
+  }
+
+  select(piece) {
+    this.deselect();
+    this.selected = piece;
+    liveShadows(0.8);
+    piece.mesh.castShadow = true;
+    gsap.to(piece.mesh.position, { y: 0.6, duration: 0.18, ease: 'back.out(2.5)', overwrite: 'auto' });
+    gsap.to(piece.mesh.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 0.18, ease: 'back.out(3)' });
+    sfx.pick();
+    buzz(8);
+  }
+
+  deselect() {
+    const piece = this.selected;
+    if (!piece) return;
+    this.selected = null;
+    liveShadows(0.8);
+    gsap.to(piece.mesh.position, { y: REST, duration: 0.22, ease: 'power2.in', overwrite: 'auto' });
+    gsap.to(piece.mesh.scale, { x: 1, y: 1, z: 1, duration: 0.22 });
+    if (this.large) gsap.delayedCall(0.3, () => (piece.mesh.castShadow = false));
+  }
+
+  moveSelected(point) {
+    const piece = this.selected;
+    this.selected = null;
+    liveShadows(1.8);
+    gsap.killTweensOf(piece.mesh.position);
+    scene.attach(piece.mesh);
+    const distance = Math.hypot(point.x - piece.target.x, point.z - piece.target.z);
+    if (distance <= Math.max(SNAP_RANGE, 15 / this.layout.s)) {
+      gsap.to(piece.mesh.position, { x: point.x, z: point.z, y: 1, duration: 0.2, ease: 'power2.out', onComplete: () => this.alive && this.place(piece) });
+      return;
+    }
+    buzz(30);
+    gsap.to(piece.mesh.position, { x: point.x, z: point.z, y: 1, duration: 0.2, ease: 'power2.out', onComplete: () => this.alive && this.sendHome(piece) });
+  }
+
   pick(piece, e) {
+    if (this.selected === piece) this.selected = null;
+    else this.deselect();
+    buzz(8);
     liveShadows();
     this.held = piece;
     this.heldOffset = { z: 0, target: e.pointerType === 'mouse' ? 0 : -Math.max(1.3, 60 / this.layout.s) };
@@ -508,6 +573,7 @@ export class Session {
 
   afterPlace(piece) {
     if (!this.alive) return;
+    buzz([10, 40, 14]);
     liveShadows(2.4);
     const now = performance.now();
     this.streak = now - this.lastPlaced < 9000 ? this.streak + 1 : 1;
@@ -646,7 +712,7 @@ export class Session {
     }
 
     const p = this.pointer;
-    if (this.phase === 'play' && p && !this.held && !p.mode && p.hit && performance.now() - p.at > 200) {
+    if (this.phase === 'play' && p && !this.held && !p.mode && p.hit && performance.now() - p.at > 260) {
       this.pick(p.hit, { pointerType: p.type });
     }
     if (this.held && p) {

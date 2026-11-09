@@ -10,7 +10,7 @@ import { Session } from './session.js';
 import { createMusic } from './music.js';
 import { PUZZLES } from './data.js';
 import { alignGrids, save, puzzleState } from './store.js';
-import { sfx, toggleSound, wakeSound } from './sound.js';
+import { buzz, sfx, toggleSound, wakeSound } from './sound.js';
 
 const SPACING = 8.8;
 const $ = (id) => document.getElementById(id);
@@ -40,6 +40,9 @@ export async function prepareGame(images) {
   });
 
   renderer.gl.compile(scene, camera);
+  scene.traverse((object) => {
+    for (const material of [object.material].flat()) if (material?.map) renderer.gl.initTexture(material.map);
+  });
   onFrame(carouselFrame);
   onResize(() => carousel.active && poseCarousel(0.4));
   wireUi();
@@ -51,7 +54,7 @@ function carouselFrame() {
     const offset = i - carousel.f;
     box.group.position.set(offset * SPACING, 0, Math.abs(offset) * 1.2);
     box.group.rotation.y = -offset * 0.12;
-    box.group.visible = Math.abs(offset) < 3.2;
+    box.group.visible = Math.abs(offset) < 2.4;
   });
 }
 
@@ -79,9 +82,14 @@ function showBoxInfo() {
   $('nextBox').disabled = focus === boxes.length - 1;
 }
 
-function goTo(index) {
-  focus = THREE.MathUtils.clamp(index, 0, boxes.length - 1);
-  gsap.to(carousel, { f: focus, duration: 0.5, ease: 'power3.out', overwrite: true });
+function goTo(index, duration = 0.5) {
+  const next = THREE.MathUtils.clamp(index, 0, boxes.length - 1);
+  if (next !== focus) {
+    sfx.pick();
+    buzz(6);
+  }
+  focus = next;
+  gsap.to(carousel, { f: focus, duration, ease: 'power3.out', overwrite: true });
   showBoxInfo();
 }
 
@@ -218,29 +226,56 @@ function wireUi() {
   syncCoupons();
 
   const canvas = ui.canvas;
+  const span = () => Math.min(size.w * 0.75, 480);
   canvas.addEventListener('pointerdown', (e) => {
-    if (carousel.active) carousel.drag = { x: e.clientX, y: e.clientY, f: carousel.f, moved: false };
+    if (!carousel.active || carousel.drag) return;
+    gsap.killTweensOf(carousel);
+    canvas.setPointerCapture(e.pointerId);
+    const now = performance.now();
+    carousel.drag = { id: e.pointerId, x: e.clientX, f: carousel.f, moved: false, lastX: e.clientX, lastT: now, at: now, vx: 0 };
+    gsap.to(boxes[focus].group.scale, { x: 0.97, y: 0.97, z: 0.97, duration: 0.12, ease: 'power2.out' });
   });
   canvas.addEventListener('pointermove', (e) => {
     const drag = carousel.drag;
-    if (!drag) return;
+    if (!drag || drag.id !== e.pointerId) return;
     const dx = e.clientX - drag.x;
-    if (Math.abs(dx) > 8) drag.moved = true;
-    if (drag.moved) carousel.f = THREE.MathUtils.clamp(drag.f - dx / Math.min(size.w * 0.8, 520), -0.3, boxes.length - 0.7);
+    if (!drag.moved && Math.abs(dx) > 8) {
+      drag.moved = true;
+      gsap.to(boxes[focus].group.scale, { x: 1, y: 1, z: 1, duration: 0.2 });
+    }
+    const now = performance.now();
+    const dt = Math.max(now - drag.lastT, 1);
+    drag.vx = drag.vx * 0.6 + ((e.clientX - drag.lastX) / dt) * 0.4;
+    drag.lastX = e.clientX;
+    drag.lastT = now;
+    if (drag.moved) carousel.f = THREE.MathUtils.clamp(drag.f - dx / span(), -0.35, boxes.length - 0.65);
   });
-  const release = () => {
+  const release = (e) => {
     const drag = carousel.drag;
+    if (!drag || drag.id !== e.pointerId) return;
     carousel.drag = null;
-    if (!drag || !carousel.active) return;
-    if (drag.moved) {
-      goTo(Math.round(carousel.f));
-    } else {
+    if (!carousel.active) return;
+    gsap.to(boxes[focus].group.scale, { x: 1, y: 1, z: 1, duration: 0.25, ease: 'back.out(3)' });
+    if (drag.moved || e.type !== 'pointerup') {
+      const fling = performance.now() - drag.lastT < 80 ? (-drag.vx * 180) / span() : 0;
+      const start = Math.round(drag.f);
+      const reach = Math.max(1, Math.round(Math.abs(carousel.f - drag.f)));
+      const target = THREE.MathUtils.clamp(Math.round(carousel.f + THREE.MathUtils.clamp(fling, -0.6, 0.6)), start - reach, start + reach);
+      goTo(target, 0.45);
+      return;
+    }
+    const third = size.w / 3;
+    if (e.clientX < third * 0.8) goTo(focus - 1);
+    else if (e.clientX > size.w - third * 0.8) goTo(focus + 1);
+    else {
       wakeSound();
+      buzz(12);
       pickBox();
     }
   };
   canvas.addEventListener('pointerup', release);
-  canvas.addEventListener('pointercancel', () => (carousel.drag = null));
+  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('lostpointercapture', release);
   window.addEventListener('keydown', (e) => {
     if (!carousel.active) return;
     if (e.key === 'ArrowLeft') goTo(focus - 1);
