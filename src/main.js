@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import { unlock } from './vault.js';
+import { prefetch, unlock } from './vault.js';
 import { PUZZLES } from './data.js';
 
 const $ = (id) => document.getElementById(id);
@@ -8,7 +8,11 @@ const note = $('gateNote');
 const button = $('gateBtn');
 
 let vault = null;
-let startTable = null;
+let introReady = false;
+let tableReady = null;
+
+const gameModule = import('./game.js');
+['index.json', 'check.bin', 'intro.bin', ...PUZZLES.map((p) => `${p.id}.bin`)].forEach((name) => prefetch(name).catch(() => {}));
 
 function loadImage(bytes) {
   const img = new Image();
@@ -16,17 +20,38 @@ function loadImage(bytes) {
   return img.decode().then(() => img);
 }
 
-async function prepare() {
-  const [images, video, game] = await Promise.all([
+async function prepareTable() {
+  const [images, game] = await Promise.all([
     Promise.all(PUZZLES.map(async (p) => loadImage(await vault.read(`${p.id}.bin`)))),
-    vault.read('intro.bin'),
-    import('./game.js'),
+    gameModule,
   ]);
+  await game.prepareGame(images);
+  return game.startTable;
+}
+
+async function prepareIntro() {
+  const video = await vault.read('intro.bin');
   const url = URL.createObjectURL(new Blob([video], { type: 'video/mp4' }));
   $('introVideo').src = url;
   $('introBlur').src = url;
-  await game.prepareGame(images);
-  startTable = game.startTable;
+}
+
+async function openTable() {
+  const shadeNote = $('shadeNote');
+  const slow = setTimeout(() => (shadeNote.hidden = false), 300);
+  try {
+    const startTable = await tableReady;
+    clearTimeout(slow);
+    shadeNote.hidden = true;
+    $('stage').style.visibility = 'visible';
+    startTable();
+    gsap.to('#shade', { opacity: 0, duration: 0.5 });
+  } catch (err) {
+    clearTimeout(slow);
+    console.error(err);
+    shadeNote.hidden = false;
+    shadeNote.textContent = 'Bir şey yüklenemedi, sayfayı yenile.';
+  }
 }
 
 async function playIntro() {
@@ -46,9 +71,7 @@ async function playIntro() {
           video.pause();
           blur.pause();
           intro.hidden = true;
-          $('stage').style.visibility = 'visible';
-          startTable();
-          gsap.to('#shade', { opacity: 0, duration: 0.5 });
+          openTable();
         },
       })
       .to(video, { scale: 1.05, duration: 1.7, ease: 'power1.in' }, 0)
@@ -71,7 +94,7 @@ async function playIntro() {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (vault && startTable) {
+  if (vault && introReady) {
     (await import('./sound.js')).wakeSound();
     playIntro();
     return;
@@ -98,8 +121,11 @@ form.addEventListener('submit', async (e) => {
   note.textContent = 'Doğru. Kutular getiriliyor.';
   button.textContent = 'Hazırlanıyor';
   $('pass').disabled = true;
+  tableReady = prepareTable();
+  tableReady.catch(() => {});
   try {
-    await prepare();
+    await prepareIntro();
+    introReady = true;
     note.textContent = 'Hazır. Sesini aç.';
     button.textContent = 'Başlat';
     button.disabled = false;

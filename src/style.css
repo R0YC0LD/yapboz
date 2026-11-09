@@ -62,7 +62,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--palm); outl
   white-space: nowrap;
 }
 
-#shade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 30; }
+#shade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 30; display: grid; place-items: center; }
+#shadeNote { margin: 0; color: var(--paper); font: 400 24px var(--display); }
 
 .primary {
   min-height: 48px;
