@@ -8,6 +8,11 @@ export const PUZZLES = [
   { id: 'p7', title: 'Güneşte Yüz Yüze', cols: 9, rows: 11 },
   { id: 'p8', title: 'Omuzda Bir Kol', cols: 11, rows: 9 },
   { id: 'p9', title: 'Yanağa Bir Öpücük', cols: 11, rows: 9 },
+  { id: 'p10', title: 'Esrarengiz Kasaba', cols: 10, rows: 8 },
+  { id: 'p11', title: 'My Little Pony', cols: 11, rows: 9 },
+  { id: 'p12', title: 'Adventure Time', cols: 9, rows: 7 },
+  { id: 'p13', title: 'Simpsonlar', cols: 10, rows: 8 },
+  { id: 'p14', title: 'Rick and Morty', cols: 8, rows: 10 },
 ];
 
 export const TRACKS = {

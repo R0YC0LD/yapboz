@@ -19,6 +19,7 @@ export function newCoupon(item) {
     uid: crypto.randomUUID(),
     id: item.id,
     name: item.name,
+    cost: item.cost,
     date: new Date().toLocaleDateString('tr-TR'),
     synced: false,
   };
@@ -33,7 +34,9 @@ export async function syncCoupons() {
       coupon.uid ??= crypto.randomUUID();
       if (coupon.synced) continue;
       try {
-        await rpc('add_coupon', { p_id: coupon.uid, p_item: coupon.id });
+        const args = { p_id: coupon.uid, p_item: coupon.id };
+        if (coupon.cost) args.p_cost = coupon.cost;
+        await rpc('add_coupon', args);
         coupon.synced = true;
       } catch (err) {
         console.warn(err);
