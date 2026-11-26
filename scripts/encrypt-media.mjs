@@ -22,10 +22,20 @@ const sources = [
   ['p14.bin', 'kutu-rick-and-morty.jpg'],
   ['p15.bin', 'kutu-fosters-home.jpg'],
   ['p16.bin', 'kutu-gumball.jpg'],
+  ['p17.bin', 'kutu-sonbahar-parki.jpg'],
+  ['p18.bin', 'kutu-gun-batimi.jpg'],
+  ['p19.bin', 'kutu-mavi-gokyuzu.jpg'],
+  ['p20.bin', 'kutu-gece-meydani.jpg'],
+  ['p21.bin', 'kutu-kamp.jpg'],
+  ['p22.bin', 'kutu-kas-goz.jpg'],
+  ['p23.bin', 'kutu-aksam-kizilligi.jpg'],
+  ['p24.bin', 'kutu-dil-rovansi.jpg'],
   ['intro.bin', 'WhatsApp Video 2026-11-07 at 21.36.53.mp4'],
 ];
 
-const salt = randomBytes(16);
+// Tuz korunur: anahtar değişirse yapılacaklar listesindeki şifreli maddeler okunamaz hale gelir.
+const previous = await readFile('public/vault/index.json', 'utf8').then(JSON.parse).catch(() => null);
+const salt = previous?.salt ? Buffer.from(previous.salt, 'hex') : randomBytes(16);
 const key = await deriveKey(canonicalDate(pass), salt);
 
 async function seal(bytes) {

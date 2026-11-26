@@ -15,6 +15,14 @@ export const PUZZLES = [
   { id: 'p14', title: 'Rick and Morty', cols: 8, rows: 10 },
   { id: 'p15', title: "Foster's Home", cols: 8, rows: 10 },
   { id: 'p16', title: 'Gumball', cols: 9, rows: 11 },
+  { id: 'p17', title: 'Sonbahar Parkı', cols: 10, rows: 8 },
+  { id: 'p18', title: 'Gün Batımı', cols: 10, rows: 8 },
+  { id: 'p19', title: 'Mavi Gökyüzü', cols: 8, rows: 10 },
+  { id: 'p20', title: 'Gece Meydanı', cols: 8, rows: 10 },
+  { id: 'p21', title: 'Kamp Çadırı', cols: 10, rows: 8 },
+  { id: 'p22', title: 'Kaş Göz Arası', cols: 8, rows: 10 },
+  { id: 'p23', title: 'Akşam Kızıllığı', cols: 10, rows: 8 },
+  { id: 'p24', title: 'Dil Çıkarma Rövanşı', cols: 10, rows: 8 },
 ];
 
 export const TRACKS = {

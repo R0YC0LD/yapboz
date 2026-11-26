@@ -98,6 +98,7 @@ export function openMenu() {
 
 function leaveMenu(chosen, then) {
   busy = true;
+  gsap.killTweensOf(['#menuTitle', '.menu-desk > *']);
   const other = chosen.id === 'goPuzzle' ? $('goTodo') : $('goPuzzle');
   const done = () => {
     $('menu').hidden = true;
