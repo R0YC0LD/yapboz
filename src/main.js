@@ -25,7 +25,7 @@ async function prepareTable() {
     Promise.all(PUZZLES.map(async (p) => loadImage(await vault.read(`${p.id}.bin`)))),
     gameModule,
   ]);
-  await game.prepareGame(images);
+  await game.prepareGame(images, vault);
   return game.startTable;
 }
 

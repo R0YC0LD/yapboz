@@ -89,6 +89,12 @@ export const sfx = {
   sweep() {
     noise({ freq: 700, sweepTo: 2400, q: 0.6, gain: 0.2, attack: 0.2, decay: 0.5 });
   },
+  scribble() {
+    for (let i = 0; i < 4; i++) noise({ freq: 3200 + i * 500, sweepTo: 4200, q: 1.6, gain: 0.12, attack: 0.02, decay: 0.08, when: i * 0.09 });
+  },
+  rub() {
+    for (let i = 0; i < 3; i++) noise({ freq: 600, sweepTo: 1100, q: 0.9, gain: 0.16, attack: 0.03, decay: 0.09, when: i * 0.1 });
+  },
   win() {
     [523, 659, 784, 1047, 1319].forEach((freq, i) => tone({ freq, gain: 0.17, decay: 0.7, when: i * 0.11 }));
   },

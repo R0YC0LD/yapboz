@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { camera, fitDistance, initStage, lampOn, moveView, onFrame, onResize, renderer, scene, size } from './stage.js';
 import { buildBox } from './box.js';
 import { initShop, openShop } from './shop.js';
+import { initHome, openMenu } from './home.js';
 import { restoreProgress, syncCoupons } from './coupons.js';
 import { initFx } from './fx.js';
 import { initPhysics } from './pour.js';
@@ -21,7 +22,7 @@ const carousel = { f: 0, active: false, drag: null };
 let session = null;
 let music = null;
 
-export async function prepareGame(images) {
+export async function prepareGame(images, vault) {
   await restoreProgress();
   alignGrids(PUZZLES);
   await Promise.all([
@@ -44,8 +45,9 @@ export async function prepareGame(images) {
     for (const material of [object.material].flat()) if (material?.map) renderer.gl.initTexture(material.map);
   });
   onFrame(carouselFrame);
-  onResize(() => carousel.active && poseCarousel(0.4));
+  onResize(() => (carousel.active ? poseCarousel(0.4) : !$('menu').hidden && poseMenu(0.4)));
   wireUi();
+  await initHome(vault, { onPuzzle: () => enterCarousel(true), covers: images.slice(0, 9).map((img) => img.src) });
 }
 
 function carouselFrame() {
@@ -93,7 +95,7 @@ function goTo(index, duration = 0.5) {
   showBoxInfo();
 }
 
-function enterCarousel() {
+function enterCarousel(fromMenu = false) {
   session = null;
   boxes.forEach((box) => {
     gsap.killTweensOf(box.group.position);
@@ -106,8 +108,13 @@ function enterCarousel() {
     box.lid.rotation.set(0, 0, 0);
   });
   carousel.active = true;
+  if (fromMenu) {
+    carousel.f = focus + 2.6;
+    gsap.to(carousel, { f: focus, duration: 0.9, ease: 'power3.out', overwrite: true });
+  }
   $('picker').hidden = false;
   $('hud').hidden = false;
+  $('homeBtn').hidden = false;
   $('backBtn').hidden = true;
   $('tools').hidden = true;
   $('shopBtn').hidden = false;
@@ -120,6 +127,7 @@ function pickBox() {
   if (!carousel.active) return;
   carousel.active = false;
   $('picker').hidden = true;
+  $('homeBtn').hidden = true;
   $('shopBtn').hidden = true;
   const chosen = boxes[focus];
   boxes.forEach((box, i) => {
@@ -147,6 +155,30 @@ function pickBox() {
     onExit: enterCarousel,
   });
   session.photoTexture = photo;
+}
+
+function poseMenu(duration) {
+  const distance = fitDistance(size.w > size.h ? 26 : 16, 20);
+  return moveView({ x: 0, y: distance * 0.9, z: distance * 0.42, tx: 0, ty: 0, tz: -2, fov: 30 }, duration, 'power2.inOut');
+}
+
+function showHome() {
+  carousel.active = false;
+  gsap.killTweensOf(carousel);
+  $('picker').hidden = true;
+  $('homeBtn').hidden = true;
+  $('backBtn').hidden = true;
+  $('tools').hidden = true;
+  $('shopBtn').hidden = false;
+  $('progress').textContent = '';
+  setMusicPanel(false);
+  boxes.forEach((box, i) => {
+    if (!box.group.visible) return;
+    const offset = i - carousel.f;
+    gsap.to(box.group.position, { x: offset * SPACING + (offset <= 0 ? -1 : 1) * 30, duration: 0.6, ease: 'power2.in', onComplete: () => (box.group.visible = false) });
+  });
+  poseMenu(0.9);
+  openMenu();
 }
 
 function leaveSession() {
@@ -206,6 +238,7 @@ function wireUi() {
     pickBox();
   };
   $('backBtn').onclick = leaveSession;
+  $('homeBtn').onclick = showHome;
   $('finishBtn').onclick = leaveSession;
   $('photoBtn').onclick = () => ($('photoView').hidden = false);
   $('photoClose').onclick = () => ($('photoView').hidden = true);
@@ -304,12 +337,16 @@ export function startTable() {
     onFailed: () => musicNote('YouTube şu an açılmadı'),
   });
   gsap.set(document.getElementById('shade'), { opacity: 0 });
-  enterCarousel();
-  poseCarousel(0);
+  boxes.forEach((box) => (box.group.visible = false));
+  $('homeBtn').hidden = true;
+  $('backBtn').hidden = true;
+  $('tools').hidden = true;
+  poseMenu(0);
+  openMenu();
   lampOn();
   music.start();
 }
 
 if (import.meta.env.DEV) {
-  window.__yapboz = { get session() { return session; }, goTo, pickBox, save, ui, renderer, scene, camera, music: () => music };
+  window.__yapboz = { get session() { return session; }, goTo, pickBox, showHome, save, ui, renderer, scene, camera, music: () => music };
 }

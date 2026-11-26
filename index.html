@@ -20,6 +20,16 @@
         <path d="M34 22l3 12M46 16l1 15M72 15l-1 16M85 22l-3 12M24 47l6 11M38 50l3 15M52 51l1 17M68 51l-1 17M82 50l-3 15M96 47l-6 11"/>
       </g>
     </symbol>
+    <symbol id="pencil" viewBox="0 0 32 32">
+      <path d="M8.5 27.3 4 28l.7-4.5L21.9 6.3a2.6 2.6 0 0 1 3.7 0l.1.1a2.6 2.6 0 0 1 0 3.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M19.3 8.9l3.8 3.8" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M4.7 23.5 8.5 27.3 4 28Z" fill="var(--lead, currentColor)"/>
+    </symbol>
+    <symbol id="eraser" viewBox="0 0 32 32">
+      <path d="M12.6 26 5.4 18.8a2 2 0 0 1 0-2.8L16.6 4.8a2 2 0 0 1 2.8 0l7.2 7.2a2 2 0 0 1 0 2.8L15.4 26Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M10.2 11.2l10.6 10.6" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M12.6 26H27" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
   </svg>
 
   <canvas id="stage" aria-label="Yapboz masası"></canvas>
@@ -27,6 +37,7 @@
   <div id="fx"></div>
 
   <header id="hud" hidden>
+    <button id="homeBtn" class="chip" type="button">Menü</button>
     <button id="backBtn" class="chip" type="button">Kutular</button>
     <div id="tools" hidden>
       <button id="photoBtn" class="chip" type="button">Resim</button>
@@ -76,6 +87,44 @@
     <h2 id="finishTitle"></h2>
     <p id="finishText"></p>
     <button id="finishBtn" class="primary" type="button">Diğer kutulara dön</button>
+  </section>
+
+  <main id="menu" hidden aria-labelledby="menuTitle">
+    <h1 id="menuTitle">Ne yapalım, Tuğba?</h1>
+    <div class="menu-desk">
+      <button id="goPuzzle" class="lid" type="button">
+        <span id="lidPhoto" class="lid-photo" aria-hidden="true"></span>
+        <span class="lid-band">
+          <span class="lid-name">Yapboz</span>
+          <span id="lidMeta" class="lid-meta"></span>
+        </span>
+      </button>
+      <button id="goTodo" class="pad" type="button">
+        <span class="pad-rings" aria-hidden="true"></span>
+        <span class="pad-name">Yapılacaklar</span>
+        <span id="padPreview" class="pad-lines"></span>
+        <svg class="pad-pencil" aria-hidden="true"><use href="#pencil"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <section id="todo" hidden aria-labelledby="todoTitle">
+    <div class="sheet">
+      <span class="pad-rings" aria-hidden="true"></span>
+      <header class="sheet-head">
+        <button id="todoBack" class="chip" type="button">Menü</button>
+        <p id="todoSync" class="sheet-sync" role="status"></p>
+      </header>
+      <h2 id="todoTitle">Yapılacaklar</h2>
+      <p id="todoCount" class="sheet-count"></p>
+      <ul id="todoList" class="sheet-list"></ul>
+      <p id="todoEmpty" class="sheet-empty" hidden>Sayfa boş. Birlikte yapmak istediğiniz ilk şeyi aşağıya yaz.</p>
+      <form id="todoForm" class="sheet-write" autocomplete="off">
+        <label class="sr" for="todoInput">Yeni madde</label>
+        <input id="todoInput" type="text" maxlength="140" placeholder="Bir şey yaz" enterkeyhint="done" spellcheck="false">
+        <button id="todoAdd" class="primary" type="submit">Ekle</button>
+      </form>
+    </div>
   </section>
 
   <div id="shade"><p id="shadeNote" hidden>Kutular hazırlanıyor</p></div>

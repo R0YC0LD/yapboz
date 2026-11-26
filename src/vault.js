@@ -55,5 +55,24 @@ export async function unlock(password) {
     if (err.name === 'OperationError') return null;
     throw err;
   }
-  return { read: (name) => open(key, name) };
+  return {
+    read: (name) => open(key, name),
+    seal: (text) => sealText(key, text),
+    unseal: (sealed) => unsealText(key, sealed),
+  };
+}
+
+async function sealText(key, text) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const body = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(text)));
+  const bytes = new Uint8Array(12 + body.length);
+  bytes.set(iv);
+  bytes.set(body, 12);
+  return btoa(String.fromCharCode(...bytes));
+}
+
+async function unsealText(key, sealed) {
+  const bytes = Uint8Array.from(atob(sealed), (c) => c.charCodeAt(0));
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(0, 12) }, key, bytes.slice(12));
+  return new TextDecoder().decode(plain);
 }
