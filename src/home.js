@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import { PUZZLES } from './data.js';
 import { puzzleState } from './store.js';
 import { buzz, sfx, wakeSound } from './sound.js';
+import { pauseStage } from './stage.js';
 import { addTodo, initTodos, markTodo, refresh, removeTodo, sync, todoItems } from './todos.js';
 
 const $ = (id) => document.getElementById(id);
@@ -210,14 +211,16 @@ function openTodo() {
   busy = false;
   refresh();
   poll = setInterval(refresh, POLL_MS);
-  if (calm) return;
-  gsap.fromTo('#todo .sheet', { yPercent: 100, rotation: 2 }, { yPercent: 0, rotation: 0, duration: 0.6, ease: 'power3.out', clearProps: 'transform' });
+  if (calm) return pauseStage(true);
+  gsap.fromTo('#todo .sheet', { yPercent: 100, rotation: 2 }, { yPercent: 0, rotation: 0, duration: 0.6, ease: 'power3.out', clearProps: 'transform', onComplete: () => pauseStage(true) });
 }
 
 function closeTodo() {
   if (busy) return;
   busy = true;
   clearInterval(poll);
+  gsap.killTweensOf('#todo .sheet');
+  pauseStage(false);
   $('todoInput').blur();
   const done = () => {
     $('todo').hidden = true;

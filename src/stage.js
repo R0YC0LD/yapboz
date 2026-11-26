@@ -16,6 +16,9 @@ export const textures = {};
 let lampLight;
 let clock = 0;
 let shadowsUntil = Infinity;
+let paused = false;
+const MIN_RATIO = 1.25;
+const perf = { frames: 0, time: 0, slow: 0, skip: 90 };
 
 export function liveShadows(seconds = Infinity) {
   shadowsUntil = seconds === Infinity ? Infinity : Math.max(shadowsUntil === Infinity ? 0 : shadowsUntil, clock + seconds);
@@ -23,6 +26,17 @@ export function liveShadows(seconds = Infinity) {
 
 export function restShadows() {
   shadowsUntil = clock + 1.2;
+}
+
+// Gölgeler yalnızca bir şey hareket ederken yeniden hesaplanır, durağan masada eski gölge haritası kullanılır.
+export function shadowsFor(seconds) {
+  shadowsUntil = clock + seconds;
+}
+
+// Masa tamamen örtülüyken (defter açık) sahne çizilmez.
+export function pauseStage(on) {
+  paused = on;
+  perf.skip = 30;
 }
 const frameHooks = new Set();
 const resizeHooks = new Set();
@@ -55,6 +69,29 @@ export function moveView(pose, duration = 1.1, ease = 'power2.inOut') {
     return Promise.resolve();
   }
   return new Promise((resolve) => gsap.to(view, { ...pose, duration, ease, onComplete: resolve }));
+}
+
+// Telefon zorlanırsa çözünürlük adım adım düşer, kare hızı korunur.
+function watchFrameRate(deltaMs) {
+  if (perf.skip > 0) {
+    perf.skip--;
+    return;
+  }
+  if (deltaMs > 250) return;
+  perf.frames++;
+  perf.time += deltaMs;
+  if (perf.frames < 60) return;
+  const average = perf.time / perf.frames;
+  perf.frames = 0;
+  perf.time = 0;
+  perf.slow = average > 24 ? perf.slow + 1 : 0;
+  const ratio = gl.getPixelRatio();
+  if (perf.slow >= 2 && ratio > MIN_RATIO) {
+    perf.slow = 0;
+    perf.skip = 30;
+    gl.setPixelRatio(Math.max(MIN_RATIO, ratio - 0.25));
+    gl.setSize(size.w, size.h, false);
+  }
 }
 
 function resize() {
@@ -139,6 +176,8 @@ export async function initStage(canvas) {
   resize();
 
   gsap.ticker.add((_, deltaMs) => {
+    if (paused) return;
+    watchFrameRate(deltaMs);
     const dt = Math.min(deltaMs / 1000, 0.05);
     clock += dt;
     gl.shadowMap.autoUpdate = clock < shadowsUntil;

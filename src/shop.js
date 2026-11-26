@@ -31,7 +31,8 @@ function row(item) {
   name.className = 'shop-name';
   name.innerHTML = '<strong></strong><span></span>';
   name.firstChild.textContent = item.name;
-  name.lastChild.textContent = item.id === 'surprise' ? `${PUZZLES.length} kutunun bütün öpücükleri: ${TOTAL}. 21 Kasım sabahı açılır.` : `${item.cost} öpücük`;
+  const lockNote = locked ? ' 21 Kasım sabahı açılır.' : '';
+  name.lastChild.textContent = item.id === 'surprise' ? `${PUZZLES.length} kutunun bütün öpücükleri: ${TOTAL}.${lockNote}` : `${item.cost} öpücük`;
 
   const button = document.createElement('button');
   button.type = 'button';
@@ -51,7 +52,12 @@ function render() {
   coupons.replaceChildren(
     ...save.coupons.map((c) => {
       const li = document.createElement('li');
-      li.textContent = `${c.name}, ${c.date}`;
+      li.className = 'ticket';
+      const name = document.createElement('strong');
+      name.textContent = c.name;
+      const date = document.createElement('span');
+      date.textContent = c.date;
+      li.append(name, date);
       return li;
     }),
   );
@@ -114,6 +120,8 @@ export function initShop(changed) {
   onChange = changed;
   $('shopClose').onclick = closeShop;
   $('couponOk').onclick = () => ($('coupon').hidden = true);
+  $('shop').addEventListener('click', (e) => e.target === $('shop') && closeShop());
+  $('coupon').addEventListener('click', (e) => e.target === $('coupon') && ($('coupon').hidden = true));
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (!$('coupon').hidden) $('coupon').hidden = true;

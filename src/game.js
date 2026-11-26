@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { camera, fitDistance, initStage, lampOn, moveView, onFrame, onResize, renderer, scene, size } from './stage.js';
+import { camera, fitDistance, initStage, lampOn, liveShadows, moveView, onFrame, onResize, renderer, scene, shadowsFor, size } from './stage.js';
 import { buildBox } from './box.js';
 import { initShop, openShop } from './shop.js';
 import { initHome, openMenu } from './home.js';
@@ -91,6 +91,7 @@ function goTo(index, duration = 0.5) {
     buzz(6);
   }
   focus = next;
+  liveShadows(duration + 0.3);
   gsap.to(carousel, { f: focus, duration, ease: 'power3.out', overwrite: true });
   showBoxInfo();
 }
@@ -108,6 +109,7 @@ function enterCarousel(fromMenu = false) {
     box.lid.rotation.set(0, 0, 0);
   });
   carousel.active = true;
+  shadowsFor(1.4);
   if (fromMenu) {
     carousel.f = focus + 2.6;
     gsap.to(carousel, { f: focus, duration: 0.9, ease: 'power3.out', overwrite: true });
@@ -172,6 +174,7 @@ function showHome() {
   $('shopBtn').hidden = false;
   $('progress').textContent = '';
   setMusicPanel(false);
+  shadowsFor(1.2);
   boxes.forEach((box, i) => {
     if (!box.group.visible) return;
     const offset = i - carousel.f;
@@ -242,6 +245,7 @@ function wireUi() {
   $('finishBtn').onclick = leaveSession;
   $('photoBtn').onclick = () => ($('photoView').hidden = false);
   $('photoClose').onclick = () => ($('photoView').hidden = true);
+  $('photoView').addEventListener('click', (e) => e.target === $('photoView') && ($('photoView').hidden = true));
   $('soundBtn').onclick = () => {
     const on = toggleSound();
     $('soundBtn').setAttribute('aria-pressed', String(on));
@@ -263,6 +267,7 @@ function wireUi() {
   canvas.addEventListener('pointerdown', (e) => {
     if (!carousel.active || carousel.drag) return;
     gsap.killTweensOf(carousel);
+    liveShadows();
     canvas.setPointerCapture(e.pointerId);
     const now = performance.now();
     carousel.drag = { id: e.pointerId, x: e.clientX, f: carousel.f, moved: false, lastX: e.clientX, lastT: now, at: now, vx: 0 };
@@ -287,6 +292,7 @@ function wireUi() {
     const drag = carousel.drag;
     if (!drag || drag.id !== e.pointerId) return;
     carousel.drag = null;
+    shadowsFor(0.6);
     if (!carousel.active) return;
     gsap.to(boxes[focus].group.scale, { x: 1, y: 1, z: 1, duration: 0.25, ease: 'back.out(3)' });
     if (drag.moved || e.type !== 'pointerup') {
@@ -343,6 +349,7 @@ export function startTable() {
   $('tools').hidden = true;
   poseMenu(0);
   openMenu();
+  shadowsFor(2.6);
   lampOn();
   music.start();
 }
